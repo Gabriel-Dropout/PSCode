@@ -14,8 +14,36 @@
   "contributes": {
     "commands": [
       {
-        "command": "pscode.helloWorld",
-        "title": "Hello World"
+        "command": "pscode.activate",
+        "title": "PSCode : Activate PSCode"
+      },
+      {
+        "command": "pscode.deactivate",
+        "title": "PSCode : Deactivate PSCode"
+      },
+      {
+        "command": "pscode.compile",
+        "title": "PSCode : Compile current problem"
+      },
+      {
+        "command": "pscode.test",
+        "title": "PSCode : Test current problem"
+      },
+      {
+        "command": "pscode.new",
+        "title": "PSCode : New PS problem"
+      },
+      {
+        "command": "pscode.panic",
+        "title": "PSCode : Give up current PS problem"
+      },
+      {
+        "command": "pscode.focus",
+        "title": "PSCode : Focus Mode On"
+      },
+      {
+        "command": "pscode.distract",
+        "title": "PSCode : Focus Mode Off"
       }
     ]
   },
