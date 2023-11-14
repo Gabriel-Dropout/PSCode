@@ -10,6 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('pscode.activate', () => {
 			vscode.window.showInformationMessage('Activate PSCode');
+			
 	}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('pscode.deactivate', () => {
@@ -40,6 +41,43 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('focus mode off');
 	}));
 
+
+	// Register webview providers
+	// known as 'sidebar'
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider("pscode.testcase",
+		{ 
+			resolveWebviewView: function(thisWebview: vscode.WebviewView, thisWebviewContext: vscode.WebviewViewResolveContext, thisToken: vscode.CancellationToken){
+				thisWebview.webview.options={enableScripts:true};
+				thisWebview.webview.html=`<!DOCTYPE html>
+				<html>
+					<body>
+						<h1>Test case</h1>
+						<p>This is test case view</p>
+						
+					</body>
+				</html>`;
+			}
+		}
+		)
+	);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider("pscode.compile",
+		{ 
+			resolveWebviewView: function(thisWebview: vscode.WebviewView, thisWebviewContext: vscode.WebviewViewResolveContext, thisToken: vscode.CancellationToken){
+				thisWebview.webview.options={enableScripts:true};
+				thisWebview.webview.html=`<!DOCTYPE html>
+				<html>
+					<body>
+						<h1>Compile</h1>
+						<p>Do you want to compile?</p>
+						<button>Yes</button>
+					</body>
+				</html>`;
+			}
+		}
+		)
+	);
 }
 
 // This method is called when your extension is deactivated
