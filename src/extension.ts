@@ -10,7 +10,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('pscode.activate', () => {
 			vscode.window.showInformationMessage('Activate PSCode');
-			
 	}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('pscode.deactivate', () => {
