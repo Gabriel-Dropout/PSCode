@@ -21,36 +21,35 @@ suite('Extension Test Suite', () => {
 // binary.ts
 // TODO: Fix this for other OSes than Windows
 suite('Binary Manager Test Suite', () => {
-	test('Compile C', (done) => {
+	test('Compile C', () => {
 		const plan: CompilePlan = {
 			language: "c",
 			srcPath: path.join(__dirname,"adder.c"),
 			binPath: path.join(__dirname,"adder.exe"),
 		};
-		binary.compileSrc(plan).then((result: CompileResult) => {
-			assert.strictEqual(result.status, 0);
-			assert.strictEqual(result.binPath, path.join(__dirname,"adder.exe"));
-			done();
-		}).catch((result) => {
-			assert.fail(JSON.stringify(result));
+		return binary.compileSrc(plan).then((result: CompileResult) => {
+			assert.strictEqual(result.status, 0, 'Compilation failure.');
+			assert.strictEqual(result.binPath, path.join(__dirname,"adder.exe"), 'binary file is not produced.');
+			
+		}).catch((e)=>{
+			throw Error(e);
 		});
 	});
 
-	test('Run binary', (done) => {
+	test('Run binary', () => {
 		const plan: RunningPlan = {
 			binPath: path.join(__dirname,"adder.exe"),
 			stdin: "1 2\n",
 			timeLimit: 1000
 		};
 		
-		binary.runBin(plan).then((result: RunningResult) => {
+		return binary.runBin(plan).then((result: RunningResult) => {
 			assert.strictEqual(result.timeOut, false, "timeout occured.");
 			assert.strictEqual(result.status, 0, `exit status is not 0, result=${JSON.stringify(result)}`);
 			assert.strictEqual(result.stdout, "3\n", "stdout is incorrect.");
 			assert.strictEqual(result.stderr, "", "stderr is incorrect.");
-			done();
-		}).catch((result) => {
-			assert.fail(`error : result=${JSON.stringify(result)}`);
+		}).catch((e)=>{
+			throw Error(e);
 		});
 	});
 });

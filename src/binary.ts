@@ -16,10 +16,7 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
     return new Promise((resolve, reject) => {
         // Check if the source file exists
         if (!fs.existsSync(plan.srcPath)) {
-            reject({
-                status: 1,
-                stderr: "Source file does not exist"
-            });
+            reject("Source file does not exist");
         }
 
         // Check if the binary file exists
@@ -62,10 +59,7 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
                 break;
             */
             default:
-                reject({
-                    status: 1,
-                    stderr: "Unsupported language"
-                });
+                reject("Unsupported language");
                 return;
         }
 
@@ -114,16 +108,9 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
     return new Promise((resolve, reject) => {
         // Check if the binary file exists
         if (!fs.existsSync(plan.binPath)) {
-            reject({
-                status: 1,
-                stdout: "",
-                stderr: "Binary file does not exist",
-                time: 0,
-                timeOut: false
-            });
+            reject("Binary file does not exist.");
         }
-        console.log("runBin");
-        console.log(plan.binPath);
+        console.log(`runBin : running ${plan.binPath}`);
 
         // Execute the binary file
         const startTime = Date.now();
@@ -162,10 +149,8 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
 
         // Resolve the promise when the binary exits
         bin.on("exit", (code) => {
-            console.log("<> exit.");
-
-            const time = Date.now() - startTime;
             clearTimeout(timeout);
+            const time = Date.now() - startTime;
             if (code === 0) {
                 resolve({
                     status: code,
@@ -188,14 +173,7 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
         // Reject when the binary exits with error
         bin.on("error", (err) => {
             clearTimeout(timeout);
-            console.log("<> error.");
-            reject({
-                status: 1,
-                stdout: stdout,
-                stderr: stderr,
-                time: Date.now() - startTime,
-                timeOut: false
-            });
+            reject("Child process could not be spawned.");
         });
 
         
