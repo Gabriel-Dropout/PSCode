@@ -127,24 +127,45 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
 
         // Execute the binary file
         const startTime = Date.now();
-        const bin = child_process.spawn('./'+plan.binPath);
-
-        // Write the stdin to the binary
-        bin.stdin?.write(plan.stdin);
-
-        // Get the stdout and stderr of the binary
+        const bin = child_process.spawn(plan.binPath,{
+            stdio:['pipe','pipe','pipe']
+        });
         let stdout = "";
         let stderr = "";
-        bin.stdout?.on("data", (data) => {
-            stdout += data;
-        });
-        bin.stderr?.on("data", (data) => {
-            stderr += data;
+
+        // Terminate the binary if it exceeds the time limit
+        const timeout = setTimeout(() => {
+            // Remove all listeners because killing it invokes 'exit' event.
+            bin.removeAllListeners();
+            bin.kill();
+            resolve({
+                status: 1,
+                stdout: stdout,
+                stderr: stderr,
+                time: Date.now() - startTime,
+                timeOut: true
+            });
+        }, plan.timeLimit);
+
+        bin.on('spawn',()=>{
+            // Write the stdin to the binary
+            bin.stdin.write(plan.stdin);
+    
+            // Get the stdout and stderr of the binary
+            bin.stdout.on("data", (data) => {
+                stdout += data;
+            });
+            bin.stderr.on("data", (data) => {
+                stderr += data;
+            });
         });
 
         // Resolve the promise when the binary exits
         bin.on("exit", (code) => {
+            console.log("<> exit.");
+
             const time = Date.now() - startTime;
+            clearTimeout(timeout);
             if (code === 0) {
                 resolve({
                     status: code,
@@ -166,6 +187,8 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
 
         // Reject when the binary exits with error
         bin.on("error", (err) => {
+            clearTimeout(timeout);
+            console.log("<> error.");
             reject({
                 status: 1,
                 stdout: stdout,
@@ -175,16 +198,6 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
             });
         });
 
-        // Terminate the binary if it exceeds the time limit
-        setTimeout(() => {
-            bin.kill();
-            resolve({
-                status: 1,
-                stdout: stdout,
-                stderr: stderr,
-                time: Date.now() - startTime,
-                timeOut: true
-            });
-        }, plan.timeLimit);
+        
     });
 }
