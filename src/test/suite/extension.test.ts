@@ -30,13 +30,26 @@ suite('Binary Manager Test Suite', () => {
 		return binary.compileSrc(plan).then((result: CompileResult) => {
 			assert.strictEqual(result.status, 0, 'Compilation failure.');
 			assert.strictEqual(result.binPath, path.join(__dirname,"adder.exe"), 'binary file is not produced.');
-			
+		}).catch((e)=>{
+			throw Error(e);
+		});
+	});
+	
+	test('Compile C(2)', () => {
+		const plan: CompilePlan = {
+			language: "c",
+			srcPath: path.join(__dirname,"infloop.c"),
+			binPath: path.join(__dirname,"infloop.exe"),
+		};
+		return binary.compileSrc(plan).then((result: CompileResult) => {
+			assert.strictEqual(result.status, 0, 'Compilation failure.');
+			assert.strictEqual(result.binPath, path.join(__dirname,"infloop.exe"), 'binary file is not produced.');
 		}).catch((e)=>{
 			throw Error(e);
 		});
 	});
 
-	test('Run binary', () => {
+	test('Run successful binary', () => {
 		const plan: RunningPlan = {
 			binPath: path.join(__dirname,"adder.exe"),
 			stdin: "1 2\n",
@@ -44,10 +57,44 @@ suite('Binary Manager Test Suite', () => {
 		};
 		
 		return binary.runBin(plan).then((result: RunningResult) => {
-			assert.strictEqual(result.timeOut, false, "timeout occured.");
-			assert.strictEqual(result.status, 0, `exit status is not 0, result=${JSON.stringify(result)}`);
-			assert.strictEqual(result.stdout, "3\n", "stdout is incorrect.");
-			assert.strictEqual(result.stderr, "", "stderr is incorrect.");
+			assert.strictEqual(result.status, "OK", `exit status must be OK, result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stdout, "3\r\n", `stdout is incorrect. result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stderr, "", `stderr is incorrect. result=${JSON.stringify(result)}`);
+		}).catch((e)=>{
+			throw Error(e);
+		});
+	});
+
+	test('Run timeout binary', () => {
+		const plan: RunningPlan = {
+			binPath: path.join(__dirname,"infloop.exe"),
+			stdin: "",
+			timeLimit: 1000
+		};
+		
+		return binary.runBin(plan).then((result: RunningResult) => {
+			assert.strictEqual(result.status, "TIMEOUT", `exit status must be TIMEOUT, result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stdout, "", `stdout is incorrect. result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stderr, "", `stderr is incorrect. result=${JSON.stringify(result)}`);
+		}).catch((e)=>{
+			throw Error(e);
+		});
+	});
+
+	test('Run kill binary', () => {
+		const plan: RunningPlan = {
+			binPath: path.join(__dirname,"infloop.exe"),
+			stdin: "",
+			timeLimit: 1000
+		};
+
+		const bin = binary.runBin(plan);
+		binary.terminateAll();
+		
+		return bin.then((result: RunningResult) => {
+			assert.strictEqual(result.status, "KILLED", `exit status must be KILLED, result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stdout, "", `stdout is incorrect. result=${JSON.stringify(result)}`);
+			assert.strictEqual(result.stderr, "", `stderr is incorrect. result=${JSON.stringify(result)}`);
 		}).catch((e)=>{
 			throw Error(e);
 		});

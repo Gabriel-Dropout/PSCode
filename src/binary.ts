@@ -2,7 +2,7 @@
 Module for direct manipulation of binary files
 1. Receive CompilePlan and perform compilation
 2. Execute the binary file
-3. Terminate the running binary file
+3. Terminate the running binary files
 4. Delete the binary file
 */
 
@@ -10,6 +10,18 @@ import { CompilePlan, CompileResult, RunningPlan, RunningResult } from './types'
 import * as fs from 'fs';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import { clear } from 'console';
+
+// Type for running binaries to safely manipulate list, timeout and events
+type RunningBin = {
+    process: child_process.ChildProcess,
+    timeout: NodeJS.Timeout | null,
+    kill: () => void,
+    killSignal: () => void
+};
+
+// List of running binaries
+let runningBins: RunningBin[] = [];
 
 // Compile the source code
 export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
@@ -87,22 +99,6 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
     });
 }
 
-/*
-export type RunningPlan = {
-    binPath: string;
-    stdin: string;
-    timeLimit: number;
-};
-
-export type RunningResult = {
-  status: number;
-  stdout: string;
-  stderr: string;
-  time: number;
-  timeOut: boolean;
-};
-*/
-
 // Execute the binary file
 export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
     return new Promise((resolve, reject) => {
@@ -120,20 +116,6 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
         let stdout = "";
         let stderr = "";
 
-        // Terminate the binary if it exceeds the time limit
-        const timeout = setTimeout(() => {
-            // Remove all listeners because killing it invokes 'exit' event.
-            bin.removeAllListeners();
-            bin.kill();
-            resolve({
-                status: 1,
-                stdout: stdout,
-                stderr: stderr,
-                time: Date.now() - startTime,
-                timeOut: true
-            });
-        }, plan.timeLimit);
-
         bin.on('spawn',()=>{
             // Write the stdin to the binary
             bin.stdin.write(plan.stdin);
@@ -147,35 +129,86 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
             });
         });
 
-        // Resolve the promise when the binary exits
-        bin.on("exit", (code) => {
-            clearTimeout(timeout);
-            const time = Date.now() - startTime;
-            if (code === 0) {
+        // Add the binary to the list of running binaries
+        const runningBin = {
+            process: bin,
+            timeout: null,
+            kill: () => {
+                clearTimeout(timeout);
+                bin.removeAllListeners();
+                bin.kill();
+                runningBins = runningBins.filter((b) => b.process !== bin);
+            },
+            killSignal: () => {
                 resolve({
-                    status: code,
+                    status: "KILLED",
                     stdout: stdout,
                     stderr: stderr,
-                    time: time,
-                    timeOut: false
-                });
-            } else {
-                resolve({
-                    status: 1,
-                    stdout: stdout,
-                    stderr: stderr,
-                    time: time,
-                    timeOut: false
+                    time: Date.now() - startTime
                 });
             }
+        }
+        runningBins.push(runningBin);
+
+        // Terminate the binary if it exceeds the time limit
+        const timeout = setTimeout(() => {
+            // kill the process
+            runningBin.kill();
+
+            resolve({
+                status: "TIMEOUT",
+                stdout: stdout,
+                stderr: stderr,
+                time: Date.now() - startTime
+            });
+        }, plan.timeLimit);
+
+        // Resolve the promise when the binary exits
+        bin.on("exit", (code) => {
+            // kill the process
+            runningBin.kill();
+
+            resolve({
+                status: code === 0 ? "OK" : "RE",
+                stdout: stdout,
+                stderr: stderr,
+                time: Date.now() - startTime
+            });
         });
 
         // Reject when the binary exits with error
         bin.on("error", (err) => {
-            clearTimeout(timeout);
+            // kill the process
+            runningBin.kill();
+
             reject("Child process could not be spawned.");
         });
+    });
+}
 
-        
+// Terminate all running binaries
+export const terminateAll = (): void => {
+    runningBins.forEach((runningBin) => {
+        runningBin.kill();
+        runningBin.killSignal();
+    });
+}
+
+// Delete the binary file
+export const deleteBin = (binPath: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        // Check if the binary file exists
+        if (!fs.existsSync(binPath)) {
+            reject("Binary file does not exist.");
+        }
+
+        // Delete the binary file
+        fs.unlink(binPath, (err) => {
+            if (err) {
+                reject("Binary file could not be deleted.");
+            } else {
+                resolve();
+            }
+        });
     });
 }
