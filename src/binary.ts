@@ -77,8 +77,10 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
 
         // Get the stderr of the compiler
         let stderr = "";
-        compiler.stderr?.on("data", (data) => {
-            stderr += data;
+        compiler.on("spawn",()=>{
+            compiler.stderr?.on("data", (data) => {
+                stderr += data;
+            });
         });
 
         // Resolve the promise when the compiler exits
@@ -97,7 +99,7 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
             }
         });
     });
-}
+};
 
 // Execute the binary file
 export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
@@ -184,7 +186,7 @@ export const runBin = (plan: RunningPlan): Promise<RunningResult> => {
             reject("Child process could not be spawned.");
         });
     });
-}
+};
 
 // Terminate all running binaries
 export const terminateAll = (): void => {
@@ -192,7 +194,7 @@ export const terminateAll = (): void => {
         runningBin.kill();
         runningBin.killSignal();
     });
-}
+};
 
 // Delete the binary file
 export const deleteBin = (binPath: string): Promise<void> => {

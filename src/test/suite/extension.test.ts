@@ -48,6 +48,22 @@ suite('Binary Manager Test Suite', () => {
 			throw Error(e);
 		});
 	});
+	
+	test('Compile C with error', () => {
+		const plan: CompilePlan = {
+			language: "c",
+			srcPath: path.join(__dirname,"wrong.c"),
+			binPath: path.join(__dirname,"wrong.exe"),
+		};
+		return binary.compileSrc(plan).then((result: CompileResult) => {
+			assert.strictEqual(result.status, 1, 'Compilation has to fail, but succeded.');
+			if(!result.stderr?.includes(`expected ‘;’ before ‘}’ token`)){
+				throw Error(`Compilation failed with another reason : ${result.stderr}`);
+			}
+		}).catch((e)=>{
+			throw Error(e);
+		});
+	});
 
 	test('Run successful binary', () => {
 		const plan: RunningPlan = {
