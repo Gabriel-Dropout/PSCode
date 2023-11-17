@@ -42,8 +42,8 @@ export type TestcaseResult = {
     passed: boolean;
 };
 
-// Type for problem
-export type Problem = {
+// Type for problem metadata
+export type ProblemData = {
     id: string;
     name: string;
     url: string;
@@ -54,4 +54,9 @@ export type Problem = {
     // used later for binary caching
     srcHash: string;
     binPath: string;
+};
+
+export type Problem = {
+    src: string;
+    metadata: ProblemData;
 };
