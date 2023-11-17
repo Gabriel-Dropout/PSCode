@@ -1,6 +1,7 @@
 // This file contains all the types used in the application
 
 export type Language = "c" | "cpp" | "java" | "python" | "javascript" | "typescript";
+export type CompileStatus = "OK" | "CE";
 export type RunningStatus = "OK" | "RE" | "TIMEOUT" | "KILLED";
 
 // Type for compilation
@@ -11,7 +12,7 @@ export type CompilePlan = {
 };
 
 export type CompileResult = {
-    status: number;
+    status: CompileStatus;
     stderr?: string;
     binPath?: string;
 };

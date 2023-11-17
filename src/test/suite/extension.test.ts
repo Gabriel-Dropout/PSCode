@@ -29,7 +29,7 @@ suite('Binary Manager Test Suite', () => {
 			binPath: path.join(__dirname,"adder.exe"),
 		};
 		return binary.compileSrc(plan).then((result: CompileResult) => {
-			assert.strictEqual(result.status, 0, 'Compilation failure.');
+			assert.strictEqual(result.status, "OK", 'Compilation failure.');
 			assert.strictEqual(result.binPath, path.join(__dirname,"adder.exe"), 'binary file is not produced.');
 		}).catch((e)=>{
 			throw Error(e);
@@ -43,7 +43,7 @@ suite('Binary Manager Test Suite', () => {
 			binPath: path.join(__dirname,"infloop.exe"),
 		};
 		return binary.compileSrc(plan).then((result: CompileResult) => {
-			assert.strictEqual(result.status, 0, 'Compilation failure.');
+			assert.strictEqual(result.status, "OK", 'Compilation failure.');
 			assert.strictEqual(result.binPath, path.join(__dirname,"infloop.exe"), 'binary file is not produced.');
 		}).catch((e)=>{
 			throw Error(e);
@@ -57,10 +57,11 @@ suite('Binary Manager Test Suite', () => {
 			binPath: path.join(__dirname,"wrong.exe"),
 		};
 		return binary.compileSrc(plan).then((result: CompileResult) => {
-			assert.strictEqual(result.status, 1, 'Compilation has to fail, but succeded.');
-			if(!result.stderr?.includes(`expected ‘;’ before ‘}’ token`)){
-				throw Error(`Compilation failed with another reason : ${result.stderr}`);
-			}
+			assert.strictEqual(result.status, "CE", 'Compilation has to fail, but succeded.');
+			// TODO: Is there any way to check the error message without depending on the compiler?
+			// if(!result.stderr?.includes(`expected ‘;’ before ‘}’ token`)){
+			// 	throw Error(`Compilation failed with another reason : ${result.stderr}`);
+			// }
 		}).catch((e)=>{
 			throw Error(e);
 		});

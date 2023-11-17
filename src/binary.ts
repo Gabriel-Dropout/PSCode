@@ -40,7 +40,7 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
             } else {
                 // Binary file is up-to-date
                 resolve({
-                    status: 0,
+                    status: "OK",
                     binPath: plan.binPath
                 });
                 return;
@@ -87,13 +87,13 @@ export const compileSrc = (plan: CompilePlan): Promise<CompileResult> => {
         compiler.on("exit", (code) => {
             if (code === 0) {
                 resolve({
-                    status: 0,
+                    status: "OK",
                     stderr: stderr,
                     binPath: plan.binPath
                 });
             } else {
                 resolve({
-                    status: 1,
+                    status: "CE",
                     stderr: stderr
                 });
             }
