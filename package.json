@@ -21,17 +21,17 @@
         }
       ]
     },
-    "views":{
-      "pscode-sidebar":[
+    "views": {
+      "pscode-sidebar": [
         {
-          "type":"webview",
-          "id":"pscode.testcase",
-          "name":"Test Case"
+          "type": "webview",
+          "id": "pscode.testcase",
+          "name": "Test Case"
         },
         {
-          "type":"webview",
-          "id":"pscode.compile",
-          "name":"Compile"
+          "type": "webview",
+          "id": "pscode.compile",
+          "name": "Compile"
         }
       ]
     },
@@ -77,9 +77,11 @@
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "preutest": "npm run compile-tests && npm run lint && copyfiles --flat ./src/utest/files/* ./out/utest/files/",
+    "utest": "mocha --ui tdd ./out/utest/*.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.3",
@@ -89,6 +91,7 @@
     "@typescript-eslint/parser": "^6.9.0",
     "@vscode/test-electron": "^2.3.6",
     "copy-webpack-plugin": "^11.0.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.52.0",
     "glob": "^10.3.10",
     "mocha": "^10.2.0",
