@@ -53,8 +53,8 @@ export type ProblemData = {
     srcPath: string;
 
     // used later for binary caching
-    srcHash: string;
-    binPath: string;
+    srcHash?: string;
+    binPath?: string;
 };
 
 export type Problem = {
